@@ -1,0 +1,548 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf400
+{\fonttbl\f0\fswiss\fcharset0 ArialMT;\f1\froman\fcharset0 Times-Roman;\f2\froman\fcharset0 TimesNewRomanPSMT;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red16\green60\blue192;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c6667\c33333\c80000;}
+\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Andy Fuentes COMP150 Project:
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 Register Allocation During Compilation: A Graph Coloring Approach
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 1. \'a0\'a0\'a0\'a0Introduction
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 Graph coloring algorithms serve as the backbone of register allocation during compiler optimization of code. A register is a memory location in the computer CPUs with an access time much faster than that of memory. \'a0Typically, two registers can be read and one written within one memory cycle, while accessing memory directly can take multiple memory cycles [2]. Due to the relatively small capacity of registers, as well as their importance in achieving fast computation speeds, optimizing register usage is a great way to increase the speeds of compiled programs.
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 During compilation, values that are referenced often should be held in easy to access registers in order to maximize the efficiency of compilation. However, programs can be tremendously complex, and even the most up to date hardware has a limited number of registers. It is the job of register allocators to determine what data can be stored in registers, and what will need to be fetched directly from memory. 
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 2.1 Overview of graph coloring for register allocation:
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 The process of register allocation takes as input intermediate code that references an unlimited number of registers. The intermediate code is assumed to be low level code, like assembly code. These pre-allocation registers are known as \'93virtual registers\'94. Registers are to store 
+\i live ranges
+\i0 , which are composed of multiple 
+\i values
+\i0  connected by common uses [2]. 
+\i Values
+\i0  are composed of a single definition, like an address in memory. When compiling, all values corresponding to the same live range are linked to the the same virtual register. It is now the register allocators job to transform the input code in such a way that the number of registers required to compile the code matches that of the hardware [3].
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 Graph coloring can be used to solve the problem of register allocation by modeling the live ranges and their interferences. A graph G can be constructed, with the nodes corresponding to live ranges, and the edges between nodes corresponding to their live ranges. If two nodes share an edge, that means they are both live at the same time. Since the values in the live range are not connected by common uses, they cannot be allocated to the same register.
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 The end goal is a k-coloring of this interference graph, such that k matches the number of registers available to the compiler. Since finding a k-coloring of a graph is NP-complete, a general heuristic approach must be taken to find an appropriate coloring. If no k-coloring can be found using the method below, live ranges are 
+\i spilled
+\i0 . This means that the live ranges are kept in slow-to-access memory, rather than registers. Outlined below is the first register allocator, implemented using a heuristic approach to register allocation. 
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 2.2 Chaitin\'92s Implementation:
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 Greg Chaitin and his colleagues at IBM developed the first register allocator based on graph coloring, known as the Yorktown Allocator [2]. This heuristic has been modified and adapted over the years, but it is a good introduction to the basics of register allocation via graph coloring. \'a0
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 The allocators heuristic approach to coloring can be broken into a series of steps, outlined below:
+\f1\fs24 \
+\pard\pardeftab720\sl400\qc\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 \ul \ulc2 Figure 2.1:\ulnone  Chaitin\'92s Graph Coloring Heuristic [2]
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Renumber:
+\b0  All live ranges are identified and given unique numbers.
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Build:
+\b0  \'a0The interference graph containing the live ranges is constructed.
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Coalesce
+\b0 : In this step, unwanted copies are removed by combining multiple live ranges. A copy is eligible for removal if the source and the target of the copies do not interfere. An exmaple of a copy instruction is something like x = y [3]. The entire code is passed through and coalesced before re-building the graph. Rebuilding the graph is necessary after coalescing live ranges since the interference graph will change [2].
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 An example of removing an unwanted copy:
+\f1\fs24 \
+\pard\pardeftab720\sl400\qc\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 	
+\f1\fs24 \
+\pard\pardeftab720\sl400\qc\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 \ul \ulc2 Figure 2.2:\ulnone  Coalescing Example [2]
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 In figure 2.0, we can see the effects of coalescing in removing an unwanted copy. On the left-hand side, 
+\i x
+\i0  is defined, and then assigned to both 
+\i y
+\i0  and 
+\i z
+\i0 . Both 
+\i y
+\i0  and 
+\i z
+\i0  interfere, since 
+\i y
+\i0  is live across the definition of 
+\i z
+\i0 . However, 
+\i x
+\i0  and 
+\i y 
+\i0 do not interfere, since they both have the same value. After one pass of coalescing, the code is condensed to the right side of the figure. The 
+\i x 
+\i0 and 
+\i y
+\i0 , removing the redundancy. The resulting interference, is that of 
+\i xy 
+\i0 and 
+\i z.
+\i0  However, 
+\i xy
+\i0  and 
+\i z
+\i0 , do not actually interfere, since they share the same value. Now that redundancies have been removed, the interference graph must be rebuilt to reflect the updated value coalescence. 
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Spill Costs
+\b0 : In this step, every live range is given a estimate for the spill cost in terms of runtime. The spill cost is the time it would take to load and store the instructions required to 
+\i spill
+\i0  the live range. The Yorktown Allocator quantifies spill cost with the formula 10^d for each instruction, where d is the nesting length of the instruction loop [2]. Nesting length is defined as the maximum number of nested statements, like: if, while, for, etc [4]. By quantifying the cost of spilling, we can choose instructions with the lowest spill cost to 
+\i spill
+\i0 . 
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Simplify
+\b0 : Here, the interference graph is inspected and all nodes with a degree less than k (meaning they can be k colored) are removed from the interference graph and pushed onto a stack 
+\i s
+\i0 . Their subsequent edges are also removed. This continuous removal of vertices reduces the degree of the remaining vertices. The remaining vertices are all of degree >= k. Vertices are now chosen for spilling. Vertices chosen to be spilled are simply removed from the interference graph.[2]
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 Here, the next step depends on whether or not there are nodes to be spilled. If nodes have been marked to be spilled, the process continues onto the spill code section. If no vertices are marked for spilling, the process continues to the select section.
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Select
+\b0 : Nodes from 
+\i s 
+\i0 are popped off of the stack and inserted back into G. When inserted into G, they are given a color such that no two connected vertices are the same color. Because all of the nodes on 
+\i s 
+\i0 were chosen because their degree was < k, they can be uniquely colored when inserted into G.
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Spill Code:
+\b0  Spill code is generated with the nodes marked in the simplify step. This spill code needs to directly load values into short, temporary variables within the live range. Since new live ranges are defined, a new interference graph needs to be created. The process is then sent back to the build phase.
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 2.3 The Interference Graph:
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 The interference graph is the core data structure used in the Yorktown Register Allocator. The interference graph is graph with the following desired possible operations [2]:
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  \'a0\'a0\'a0\'a0\'a0\'a0\'a0	new(
+\i n
+\i0 ): Creates and returns a graph with 
+\i n
+\i0  nodes (with no edges).
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  \'a0\'a0\'a0\'a0\'a0\'a0\'a0	add(
+\i g
+\i0 , 
+\i x
+\i0 , 
+\i y
+\i0 ): Creates an edge between nodes 
+\i x
+\i0  and 
+\i y 
+\i0 \'a0in the graph 
+\i g
+\i0 . Returns 
+\i g.
+\f1\i0\fs24 \
+
+\f0\fs29\fsmilli14667  \'a0\'a0\'a0\'a0\'a0\'a0\'a0	interfere(
+\i g
+\i0 , 
+\i x
+\i0 , 
+\i y
+\i0 ): Returns true if nodes 
+\i x 
+\i0 \'a0and 
+\i y
+\i0  in graph 
+\i g
+\i0  interfere with each other, meaning they share an edge.
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 degree(
+\i g
+\i0 , 
+\i x
+\i0 ): \'a0Returns the degree of the node 
+\i x
+\i0  in graph 
+\i G
+\i0 .
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 neighbors(
+\i g
+\i0 , 
+\i x
+\i0 , 
+\i f
+\i0 ): Apply the function 
+\i f
+\i0  to all the neighbors of 
+\i x 
+\i0 in the graph 
+\i g
+\i0 .
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 The graph 
+\i G
+\i0  is stored as both an adjacency bit matrix and list. Although seemingly redundant, this is highly beneficial in regards to efficiency. The bit matrix supports constant time of the 
+\i add
+\i0  and 
+\i interfere
+\i0  methods, while the adjacency list supports easy implementation of the 
+\i neighbors
+\i0  method [2].
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 Interfere and add both require quickly accessing two nodes. The adjacency matrix implementation of the interference graph allows for drastically decreased runtime for these methods, relative to an adjacency list implementation. Neighbors runtime is greatly decreased due to the adjacency list implementation, as the neighbors can be accessed in O(k) time, where k is the number of neighbors the node has.
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 The interference graph is constructed in two passes. In the first pass, the bit matrix is created, initialzed to be empty, and the degree of each node is collected. In the second pass, adjacency lists are created, with known size, and the actual interferences are recorded in the bit matrix and adjacency size. The graph is re-constructed during each pass of the coalesce step, as mentioned above.
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  2.4 The coloring algorithm:
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 The key part of Chaitins register allocator is the coloring algorithm. Chaitins graph coloring algorithm runs in O(e + n), where n is the number of nodes, or live ranges, in the interference graph, and e is the number of edges in the interference graph. The main parts of the coloring algorithm are the 
+\i simplify
+\i0  and 
+\i select
+\i0  components. The following attempts to address why the coloring heuristic works.
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Select and Simplify:
+\f1\b0\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\i\fs29\fsmilli14667 \cf2 Simplify
+\i0  removes nodes whos degree is < k, and pushes them onto a stack 
+\i s
+\i0 . Once all nodes that can be removed from the graph are pushed onto the stack, the 
+\i select 
+\i0 aspect of the algorithm adds them back onto the graph. When moving a node back onto the graph, we are adding a node that had degree < k. ONce the node is added back to the graph, it will degree of < k. Because there are k colors, there will be a color available for that vertex. 
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 A node is only removed via 
+\i simplify
+\i0  when it is trivially colorable, that is when its degree is < k. When a node is removed, all of its edges are removed as well. This reduces the degree of all nodes it shares edges with. These remaining nodes can potentially become eligible for removal. 
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 This removal heuristic ensures that nodes are removed and added to the stack from the graph in increasing difficulty, starting from the easiest (most trivial) to color. 
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 When 
+\i select 
+\i0 moves nodes from the stack back onto the graph, it will have less than k neighbors, making it trivial to k-color. This is best visualized via a graphic example. See Figure 2.3 below:\uc0\u8232 \u8232 
+\f1\fs24 \
+\pard\pardeftab720\sl400\qc\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 \pard\pardeftab720\sl400\qc\partightenfactor0
+
+\f1\fs24 \cf2 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\qc\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 \ul \ulc2 Figure 2.3:\ulnone  Coalescing Example [2]
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 Say we are trying to find a 3-coloring of the graph on the left hand side of Figure 2.3. In the 
+\i Simplify
+\i0  section, node 1 removed because its degree of 2 is less than 3. Nodes 2 and 3 have had their degree reduce by 1. Next, node 2 is removed, since its degree is also less than 3. This process continues until all nodes that have degree less than 3 (k) have been removed [2].
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 Now, on the right-hand side of Figure 2.3, we have the 
+\i select 
+\i0 phase. The stack 
+\i s 
+\i0 created by simplify now looks like the stack to the right, in Figure 2.4. Nodes are added to the now empty graph, starting with node 5. Since all these were moved when they were trivially colorable, they can be added back and colored trivially [2].
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 During the 
+\i simplify
+\i0  phase, if the graph cannot be emptied due to nodes with a degree >= k, those nodes are chosen to be spilled. Spilled nodes are chosen by the criteria outlined below.
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\b\fs29\fsmilli14667 \cf2 Spill Nodes:
+\f1\b0\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 The register allocator implementation by Chaitin uses the following as the criterion for chosing which node to spill.
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\i\fs29\fsmilli14667 \cf2 M
+\fs17\fsmilli8800 \sub n
+\fs29\fsmilli14667 \nosupersub  = cost
+\fs17\fsmilli8800 \sub n
+\fs29\fsmilli14667 \nosupersub  / degree
+\fs17\fsmilli8800 \sub n
+\f1\i0\fs24 \nosupersub \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 Further research by Bernstein 
+\i et al.
+\i0  at Haifa improves upon Chaitins initial metric, by proposing the following three [5]:
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\fi960\sl400\partightenfactor0
+
+\f0\i\fs29\fsmilli14667 \cf2 M
+\fs17\fsmilli8800 \sub n
+\fs29\fsmilli14667 \nosupersub  = cost
+\fs17\fsmilli8800 \sub n
+\fs29\fsmilli14667 \nosupersub  / degree
+\fs17\fsmilli8800 \super 2\sub n
+\f1\i0\fs24 \nosupersub \
+
+\f0\i\fs29\fsmilli14667 M
+\fs17\fsmilli8800 \sub n
+\fs29\fsmilli14667 \nosupersub  = cost
+\fs17\fsmilli8800 \sub n
+\fs29\fsmilli14667 \nosupersub  / degree
+\fs17\fsmilli8800 \super 2\sub n
+\fs29\fsmilli14667 \nosupersub area
+\fs17\fsmilli8800 \sub n
+\f1\i0\fs24 \nosupersub \
+
+\f0\i\fs29\fsmilli14667 Area
+\fs17\fsmilli8800 \sub n
+\fs29\fsmilli14667 \nosupersub  = \uc0\u931  5
+\fs17\fsmilli8800 \super depth,i
+\fs29\fsmilli14667 \nosupersub  width
+\fs17\fsmilli8800 \sub i
+\fs29\fsmilli14667 \nosupersub  
+\f1\i0\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\i\fs29\fsmilli14667 \cf2 Area
+\fs17\fsmilli8800 \sub n
+\i0\fs29\fsmilli14667 \nosupersub  is Bernstein\'92s way of quantifying the live range n\'92s impact on other live ranges throughout the current routine. 
+\i Depth
+\fs17\fsmilli8800 \sub i 
+\i0\fs29\fsmilli14667 \nosupersub corresponds to the number of loops containing the specific instruction 
+\i i
+\i0  and 
+\i width
+\fs17\fsmilli8800 \sub i
+\i0\fs29\fsmilli14667 \nosupersub  is the number of live ranges that are live across the specific instruction [2]. 
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 The node with the smallest above ratio is chosen. For different instructions and routines, certain metrics dominate relative to other metrics. This is why Bernstein and his colleagues use a \'93best of 3\'94 heuristic when choosing which node to spill, meaning 
+\i simplify
+\i0  is run three times, each time with a different spill metric. The metric which produces the lowest spill cost is chosen. This method is implemented due to the fact that choosing the best spill node is NP-complete [2].
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\
+\
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 References:
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 [1] David Koes, Seth Copen Goldstein. An Analysis of Graph Coloring Register Allocation
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+{\field{\*\fldinst{HYPERLINK "http://www.cs.cmu.edu/~dkoes/research/graphraTR.pdf"}}{\fldrslt 
+\f0\fs29\fsmilli14667 \cf3 \ul \ulc3 \strokec3 http://www.cs.cmu.edu/~dkoes/research/graphraTR.pdf}}\
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 [2] Preston Briggs. Register allocation via graph coloring. PhD thesis, Rice University, Houston, TX, USA, 1992.
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 [3] Zhong Shao. More on Machine-Code Generation. Yale University, Nev Haven, CT, USA. 1994-2017.
+\f1\fs24 \
+\pard\pardeftab720\sl360\partightenfactor0
+
+\f2\fs26\fsmilli13333 \cf2 http://flint.cs.yale.edu/cs421/lectureNotes/c11.pdf
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2  
+\f1\fs24 \
+
+\f0\fs29\fsmilli14667 [4] Semmle 1.17 Documentation Team. Semmle, San Francisco, CA, USA. March 27, 2017.
+\f1\fs24 \
+\pard\pardeftab720\sl400\partightenfactor0
+{\field{\*\fldinst{HYPERLINK "https://help.semmle.com/wiki/display/CCPPOBJ/Nesting+depth"}}{\fldrslt 
+\f0\fs29\fsmilli14667 \cf3 \ul \ulc3 \strokec3 https://help.semmle.com/wiki/display/CCPPOBJ/Nesting+depth}}\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+\pard\pardeftab720\sl400\partightenfactor0
+
+\f0\fs29\fsmilli14667 \cf2 [5] David Bernstein, Dina Q. Goldin, Martin C. Golumbic, Hugo Krawczyk, Yishay Mansour, Itai Nahshon, and Ron Y. Pinter. Spill Code minimization techniques for optimizing compilers.
+\i  SIGPLAN Notices, 
+\i0 24(7):258-263, July 1989.
+\f1\fs24 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \
+}
