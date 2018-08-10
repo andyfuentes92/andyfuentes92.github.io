@@ -10,14 +10,13 @@
     p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
     p.p4 {margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000}
     p.p5 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
-    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 12.0px 'Cambria Math'; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
-    p.p7 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px 'Cambria Math'; color: #000000; -webkit-text-stroke: #000000}
+    p.p7 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000}
     p.p8 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
-    p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
-    p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; text-indent: 48.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
-    p.p11 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 20.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
-    p.p12 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 18.0px}
+    p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; text-indent: 48.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000}
     span.s1 {font-kerning: none}
+    span.s2 {font: 10.0px Times; font-kerning: none}
     span.Apple-tab-span {white-space:pre}
   </style>
 </head>
@@ -34,20 +33,23 @@
 <p class="p5"><span class="s1">The process of register allocation takes as input intermediate code that references an unlimited number of registers. The intermediate code is assumed to be low level code, like assembly code. These pre-allocation registers are known as “virtual registers”. Registers are to store live ranges, which are composed of multiple values connected by common uses [2]. Values are composed of a single definition, like an address in memory. When compiling, all values corresponding to the same live range are linked to the the same virtual register. It is now the register allocators job to transform the input code in such a way that the number of registers required to compile the code matches that of the hardware [3].</span></p>
 <p class="p5"><span class="s1">Graph coloring can be used to solve the problem of register allocation by modeling the live ranges and their interferences. A graph G can be constructed, with the nodes corresponding to live ranges, and the edges between nodes corresponding to their live ranges. If two nodes share an edge, that means they are both live at the same time. Since the values in the live range are not connected by common uses, they cannot be allocated to the same register.</span></p>
 <p class="p5"><span class="s1">The end goal is a k-coloring of this interference graph, such that k matches the number of registers available to the compiler. Since finding a k-coloring of a graph is NP-complete, a general heuristic approach must be taken to find an appropriate coloring. If no k-coloring can be found using the method below, live ranges are spilled. This means that the live ranges are kept in slow-to-access memory, rather than registers. Outlined below is the first register allocator, implemented using a heuristic approach to register allocation.<span class="Apple-converted-space"> </span></span></p>
-<p class="p6"><span class="s1"></span><br></p>
-<h3 style="margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Chaitins Implementation</b></span></h3>
+<p class="p6"><span class="s1"><br>
+</span></p>
+<h3 style="margin: 0.0px 0.0px 12.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Chaitins Implementation</b></span></h3>
 <p class="p5"><span class="s1">Greg Chaitin and his colleagues at IBM developed the first register allocator based on graph coloring, known as the Yorktown Allocator [2]. This heuristic has been modified and adapted over the years, but it is a good introduction to the basics of register allocation via graph coloring.  </span></p>
 <p class="p5"><span class="s1">The allocators heuristic approach to coloring can be broken into a series of steps, outlined below:</span></p>
 <p class="p5"><span class="s1"><b>Renumber:</b> All live ranges are identified and given unique numbers.</span></p>
 <p class="p5"><span class="s1"><b>Build:</b>  The interference graph containing the live ranges is constructed.</span></p>
 <p class="p5"><span class="s1"><b>Coalesce:</b> In this step, unwanted copies are removed by combining multiple live ranges. A copy is eligible for removal if the source and the target of the copies do not interfere. An exmaple of a copy instruction is something like x = y [3]. The entire code is passed through and coalesced before re-building the graph. Rebuilding the graph is necessary after coalescing live ranges since the interference graph will change [2].</span></p>
-<p class="p8"><span class="s1"></span><br></p>
+<p class="p5"><span class="s1"><br>
+</span></p>
 <p class="p5"><span class="s1">An example of removing an unwanted copy:</span></p>
 <p class="p5"><span class="s1">In figure 2.0, we can see the effects of coalescing in removing an unwanted copy. On the left-hand side, <i>x</i> is defined, and then assigned to both <i>y</i> and <i>z</i>. Both <i>y</i> and <i>z</i> interfere, since <i>y</i> is live across the definition of <i>z</i>. However, <i>x</i> and <i>y </i>do not interfere, since they both have the same value. After one pass of coalescing, the code is condensed to the right side of the figure. The <i>x </i>and <i>y</i>, removing the redundancy. The resulting interference, is that of <i>xy </i>and <i>z.</i> However, <i>xy</i> and <i>z</i>, do not actually interfere, since they share the same value. Now that redundancies have been removed, the interference graph must be rebuilt to reflect the updated value coalescence.<span class="Apple-converted-space"> </span></span></p>
 <p class="p5"><span class="s1"><b>Spill Costs</b>: In this step, every live range is given a estimate for the spill cost in terms of runtime. The spill cost is the time it would take to load and store the instructions required to <i>spill</i> the live range. The Yorktown Allocator quantifies spill cost with the formula 10^d for each instruction, where d is the nesting length of the instruction loop [2]. Nesting length is defined as the maximum number of nested statements, like: if, while, for, etc [4]. By quantifying the cost of spilling, we can choose instructions with the lowest spill cost to <i>spill</i>.<span class="Apple-converted-space"> </span></span></p>
 <p class="p5"><span class="s1"><b>Simplify</b>: Here, the interference graph is inspected and all nodes with a degree less than k (meaning they can be k colored) are removed from the interference graph and pushed onto a stack <i>s</i>. Their subsequent edges are also removed. This continuous removal of vertices reduces the degree of the remaining vertices. The remaining vertices are all of degree &gt;= k. Vertices are now chosen for spilling. Vertices chosen to be spilled are simply removed from the interference graph.[2]</span></p>
 <p class="p5"><span class="s1">Here, the next step depends on whether or not there are nodes to be spilled. If nodes have been marked to be spilled, the process continues onto the spill code section. If no vertices are marked for spilling, the process continues to the select section.</span></p>
-<p class="p8"><span class="s1"></span><br></p>
+<p class="p5"><span class="s1"><br>
+</span></p>
 <p class="p5"><span class="s1"><b>Select</b>: Nodes from <i>s </i>are popped off of the stack and inserted back into G. When inserted into G, they are given a color such that no two connected vertices are the same color. Because all of the nodes on <i>s </i>were chosen because their degree was &lt; k, they can be uniquely colored when inserted into G.</span></p>
 <p class="p8"><span class="s1"><span class="Apple-converted-space"> </span></span></p>
 <p class="p5"><span class="s1"><b>Spill Code:</b> Spill code is generated with the nodes marked in the simplify step. This spill code needs to directly load values into short, temporary variables within the live range. Since new live ranges are defined, a new interference graph needs to be created. The process is then sent back to the build phase.</span></p>
@@ -66,33 +68,44 @@
 <p class="p8"><span class="s1"><span class="Apple-converted-space"> </span></span></p>
 <p class="p7"><span class="s1"><b>The Coloring Algorithm</b></span></p>
 <p class="p5"><span class="s1">The key part of Chaitins register allocator is the coloring algorithm. Chaitins graph coloring algorithm runs in O(e + n), where n is the number of nodes, or live ranges, in the interference graph, and e is the number of edges in the interference graph. The main parts of the coloring algorithm are the <i>simplify</i> and <i>select</i> components. The following attempts to address why the coloring heuristic works.</span></p>
-<p class="p8"><span class="s1"></span><br></p>
+<p class="p5"><span class="s1"><br>
+</span></p>
 <p class="p5"><span class="s1"><b>Select and Simplify:</b></span></p>
 <p class="p5"><span class="s1"><i>Simplify</i> removes nodes whos degree is &lt; k, and pushes them onto a stack <i>s</i>. Once all nodes that can be removed from the graph are pushed onto the stack, the <i>select </i>aspect of the algorithm adds them back onto the graph. When moving a node back onto the graph, we are adding a node that had degree &lt; k. ONce the node is added back to the graph, it will degree of &lt; k. Because there are k colors, there will be a color available for that vertex.<span class="Apple-converted-space"> </span></span></p>
 <p class="p5"><span class="s1">A node is only removed via <i>simplify</i> when it is trivially colorable, that is when its degree is &lt; k. When a node is removed, all of its edges are removed as well. This reduces the degree of all nodes it shares edges with. These remaining nodes can potentially become eligible for removal.<span class="Apple-converted-space"> </span></span></p>
 <p class="p5"><span class="s1">This removal heuristic ensures that nodes are removed and added to the stack from the graph in increasing difficulty, starting from the easiest (most trivial) to color.<span class="Apple-converted-space"> </span></span></p>
 <p class="p1"><span class="s1">When <i>select </i>moves nodes from the stack back onto the graph, it will have less than k neighbors, making it trivial to k-color. This is best visualized via a graphic example. See Figure 2.3 below:</span></p>
-<p class="p9"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
 <p class="p1"><span class="s1">Say we are trying to find a 3-coloring of the graph on the left hand side of Figure 2.3. In the <i>Simplify</i> section, node 1 removed because its degree of 2 is less than 3. Nodes 2 and 3 have had their degree reduce by 1. Next, node 2 is removed, since its degree is also less than 3. This process continues until all nodes that have degree less than 3 (k) have been removed [2].</span></p>
-<p class="p9"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
 <p class="p1"><span class="s1">Now, on the right-hand side of Figure 2.3, we have the <i>select </i>phase. The stack <i>s </i>created by simplify now looks like the stack to the right, in Figure 2.4. Nodes are added to the now empty graph, starting with node 5. Since all these were moved when they were trivially colorable, they can be added back and colored trivially [2].</span></p>
-<p class="p9"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
 <p class="p1"><span class="s1">During the <i>simplify</i> phase, if the graph cannot be emptied due to nodes with a degree &gt;= k, those nodes are chosen to be spilled. Spilled nodes are chosen by the criteria outlined below.</span></p>
-<p class="p9"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
 <p class="p1"><span class="s1"><b>Spill Nodes:</b></span></p>
-<p class="p9"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
 <p class="p1"><span class="s1">The register allocator implementation by Chaitin uses the following as the criterion for chosing which node to spill.</span></p>
-<p class="p1"><span class="s1"><i>M<sub>n</sub> = cost<sub>n</sub> / degree<sub>n</sub></i></span></p>
-<p class="p9"><span class="s1"><i><sub></sub></i></span><br></p>
+<p class="p1"><span class="s1"><i>M</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"><i> = cost</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"><i> / degree</i></span><span class="s2"><i><sub>n</sub></i></span></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
 <p class="p1"><span class="s1">Further research by Bernstein <i>et al.</i> at Haifa improves upon Chaitins initial metric, by proposing the following three [5]:</span></p>
-<p class="p9"><span class="s1"></span><br></p>
-<p class="p10"><span class="s1"><i>M<sub>n</sub> = cost<sub>n</sub> / degree<sup>2</sup><sub>n</sub></i></span></p>
-<p class="p10"><span class="s1"><i>M<sub>n</sub> = cost<sub>n</sub> / degree<sup>2</sup><sub>n</sub>area<sub>n</sub></i></span></p>
-<p class="p10"><span class="s1"><i>Area<sub>n</sub> = Σ 5<sup>depth,i</sup> width<sub>i</sub><span class="Apple-converted-space"> </span></i></span></p>
-<p class="p9"><span class="s1"></span><br></p>
-<p class="p5"><span class="s1"><i>Area<sub>n</sub></i> is Bernstein’s way of quantifying the live range n’s impact on other live ranges throughout the current routine. <i>Depth<sub>i </sub></i>corresponds to the number of loops containing the specific instruction <i>i</i> and <i>width<sub>i</sub></i> is the number of live ranges that are live across the specific instruction [2].<span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
+<p class="p9"><span class="s1"><i>M</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"><i> = cost</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"><i> / degree</i></span><span class="s2"><i><sup>2</sup><sub>n</sub></i></span></p>
+<p class="p9"><span class="s1"><i>M</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"><i> = cost</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"><i> / degree</i></span><span class="s2"><i><sup>2</sup><sub>n</sub></i></span><span class="s1"><i>area</i></span><span class="s2"><i><sub>n</sub></i></span></p>
+<p class="p9"><span class="s1"><i>Area</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"><i> = Σ 5</i></span><span class="s2"><i><sup>depth,i</sup></i></span><span class="s1"><i> width</i></span><span class="s2"><i><sub>i</sub></i></span><span class="s1"><i><span class="Apple-converted-space"> </span></i></span></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
+<p class="p5"><span class="s1"><i>Area</i></span><span class="s2"><i><sub>n</sub></i></span><span class="s1"> is Bernstein’s way of quantifying the live range n’s impact on other live ranges throughout the current routine. <i>Depth</i></span><span class="s2"><i><sub>i </sub></i></span><span class="s1">corresponds to the number of loops containing the specific instruction <i>i</i> and <i>width</i></span><span class="s2"><i><sub>i</sub></i></span><span class="s1"> is the number of live ranges that are live across the specific instruction [2].<span class="Apple-converted-space"> </span></span></p>
 <p class="p5"><span class="s1">The node with the smallest above ratio is chosen. For different instructions and routines, certain metrics dominate relative to other metrics. This is why Bernstein and his colleagues use a “best of 3” heuristic when choosing which node to spill, meaning <i>simplify</i> is run three times, each time with a different spill metric. The metric which produces the lowest spill cost is chosen. This method is implemented due to the fact that choosing the best spill node is NP-complete [2].</span></p>
-<p class="p11"><span class="s1"></span><br></p>
-<p class="p12"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><br>
+</span></p>
+<p class="p10"><span class="s1"><br>
+</span></p>
 </body>
 </html>
